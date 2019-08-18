@@ -15,6 +15,7 @@ public class RBT {
 
 
     Node root; 
+    static final int COUNT = 10;
 
 
     public class Node {
@@ -42,8 +43,49 @@ public class RBT {
         }
 
         public String toString() {
-            return "Colour: " + colour + "Data: " + data;
+            return "C: " + colour + " D: " + data;
         }
+        public int compareTo(Node other) {
+
+            int lik = 0;
+            int mindre = -1;
+            int storre = 1;
+
+            Integer data = Integer.valueOf(this.data);
+            Integer otherData = Integer.valueOf(other.data);
+
+            return data.compareTo(otherData) == 0 ? lik : data.compareTo(otherData) > 0 ? storre : data.compareTo(otherData) < 0 ? mindre : 0;
+        }
+
+        public boolean isLeftChild() {
+            return this.parent.left == this;
+        }
+        public boolean isRightChild() {
+            return this.parent.right == this;
+        }
+    }
+
+    public Node find(int value) {
+
+        if (root == null) {
+            return null;
+        }
+        return find(root, value);
+
+    }
+
+    public Node find(Node n, int value) {
+        if (n == null) {
+            return null;
+        }
+
+        if(n.data == value) {
+            return n;
+        }
+
+        return value < n.data ? find(n.left,value) : find(n.right, value);
+
+        
     }
 
     public Node returParent(Node n) {
@@ -74,8 +116,12 @@ public class RBT {
             if(node.left == null) {
             
                 node.left = new Node(data);
+
+        
+               node.left.setRed();
                 node.left.parent = localParent;
                 rebalance(node.left);
+           
                 return;
             }
             add(node.left,data);
@@ -83,6 +129,10 @@ public class RBT {
         if (data > node.data) {
             if(node.right == null) {
                 node.right = new Node(data);
+                System.out.println("JEG settes inn her " + node.right);
+  
+             node.right.setRed();
+       
                 node.right.parent = localParent;
                 rebalance(node.right);
                 return;
@@ -110,97 +160,151 @@ public class RBT {
     
 
     public void colorflip(Node n) {
-        n.parent.setBlack();
-        getSibling(n.parent).setBlack();
-        n.parent.parent.setRed();
-        root.setBlack();
-        
-        // parent becomes red, children black
+        n.setRed();
+        n.left.setBlack();
+        n.right.setBlack();
+      
+    }
+
+    public void checkColor(Node node) {
+       
+    }
+
+    public void correctTree(Node node) {
+  
     }
 
     public void rotate(Node n) {
-        // parent becomes black, children become red
-        System.out.println("Parent");
-        System.out.println(n.parent);
-        n.setBlack();
-    n.left.setRed();
-        n.right.setRed();
+        if (n.isLeftChild()) {
+            if(n.parent.isLeftChild()) {
+                rightRotate(returGrand(n));
+                n.setRed();
+                n.parent.setBlack();
+                if(n.parent.right != null) {
+                    n.parent.right.setRed();
+                    return;
+                }
+                rightLeftRotate(n.parent.parent);
+                n.setBlack();
+                n.right.setRed();
+                n.left.setRed();
+                return;
+            }
+        }
+  
+
+            if (n.parent.isRightChild()) {
+                leftRotate(returGrand(n));
+                n.setRed();
+                n.parent.setBlack();
+                if(n.parent.right!= null) {
+                    n.parent.right.setRed();
+                    return;
+                }
+                leftRotate(n.parent);
+                rightRotate(n.parent.parent);
+
+                n.setBlack();
+                n.right.setRed();
+                n.left.setRed();
+
+            }
+        
+
+       
 
 
     }
 
     public void rightLeftRotate(Node n) {
-        Node hoyre = returGrand(n).right;
-        Node venstre = returGrand(n);
-
-        returGrand(n).parent.right = n;
-        n.parent = returGrand(n).parent;
-
-        n.right = hoyre;
-        n.left = venstre;
-        hoyre.parent = n; venstre.parent = n;
+       
 
    
     }
+
+    public void rightRotate(Node n) {
+        // faren kommer inn som parameter
+        Node newParent = n.parent;
+        Node x = n.left;
+        n.left = x.right;
+        x.right = n;
+        x.parent = newParent;
+        newParent.left = x;
+        n.parent = x;
+
+    }
+  
     public void leftRotate(Node n) {
 
-        
-       Node left =  returGrand(n).parent.right;
 
-       returGrand(n).parent.right = n.parent;
-       n.parent = returGrand(n).parent;
+        Node newParent = n.parent;
+        Node x = n.right;
+        n.right = x.left;
+        x.left = n;
+        x.parent = newParent;
+        newParent.right = x;
 
-       n.parent.left = left;
-       left.parent = n.parent;
+        n.parent = x;
+   
 
+      
      
     }
 
 
     public void rebalance(Node n) {
 
-        // Inserted node is always red.
-        n.setRed();
-
     
-        if (hasSibling(n.parent)) {
-            // colour til tanten
-            String colour = getSibling(n.parent).colour;
-
-            // breaks the rule:  No path can have two consecutive RED nodes
-            if (colour == "RED"){
-                System.out.println("colorflip");
-                colorflip(n);
-                return;
-            }
-
       
+        if (n == root ) {
+            fixRoot();
+            return;
+        }
+        if (n.parent.colour == "BLACK") {
+            // System.out.println(n);
+            return;
         }
 
+        Node uncle = getSibling(n.parent);
+        Node grand = returGrand(n);
+        Node parent = returParent(n);
+     
 
- 
-        if(n.parent.colour == "RED" && hasSibling(n.parent) == false) {
-            if (n.data < n.parent.data) {
-                rightLeftRotate(n);
+        if(uncle != null && uncle.colour == "RED" && grand != null) {
+            colorflip(grand);
+            System.out.println("JEG ER GRAND" + grand);
+            rebalance(grand);
+            return;
+        }
+        // ingen uncle eller uncle er svart
+        if (uncle == null  && n != root || uncle != null && uncle.colour =="BLACK"  ) {
+            System.out.println("HEI");
+
+            // left rotate
+            if (n.compareTo(n.parent) < 0 && n.parent.compareTo(returGrand(n)) < 0) {
                 
-                rotate(n);
+                rightRotate(grand);
+                grand.setRed();
+                parent.setBlack();
+                return;
             }
-            if (n.data > n.parent.data && returGrand(n) != null) {
-                System.out.println("Hello")
-                leftRotate(n);
-                rotate(n);
+            // right rotate
+            if(n.compareTo(n.parent) > 0  && n.parent.compareTo(returGrand(n)) > 0) {
+                System.out.println(parent);
+                System.out.println(grand);
+                System.out.println(uncle);
+                leftRotate(grand);
+                grand.setRed();
+                parent.setBlack();
+                return;
+
             }
-        } 
+        }
+    
 
+   
 
-       
-
-
-
-        return;
-        // if (n != null && n != root && n.parent.colour == "RED") {
-        //     System.out.println("HEI");
-        // }
+    
     }
 
 
@@ -251,6 +355,36 @@ public class RBT {
         inOrder(root);
 
     }
+    static void print2DUtil(Node root, int space)  
+{  
+    // Base case  
+    if (root == null)  
+        return;  
+  
+    // Increase distance between levels  
+    space += COUNT;  
+  
+    // Process right child first  
+    print2DUtil(root.right, space);  
+  
+    // Print current node after space  
+    // count  
+    System.out.print("\n");  
+    for (int i = COUNT; i < space; i++)  
+        System.out.print(" ");  
+    System.out.print(root + "\n");  
+  
+    // Process left child  
+    print2DUtil(root.left, space);  
+}  
+  
+// Wrapper over print2DUtil()  
+static void print2D(Node root)  
+{  
+    // Pass initial space count as 0  
+    print2DUtil(root, 0);  
+}  
+  
 
     public static void main(String [ ] args) {
 
