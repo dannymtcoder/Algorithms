@@ -233,6 +233,32 @@ public class RBT {
         n.parent = x;
 
     }
+
+    public void sideVenstreRotate(Node n) {
+        Node newParent = n.parent;
+
+        Node x = n.right;
+
+        n.right = x.left;
+
+        x.left = n;
+        n.parent = x;
+        x.parent = newParent;
+        newParent.left = x;
+    }
+
+    public void sideHoyreRotate(Node n) {
+
+        Node newParent = n.parent;
+        Node x = n.left;
+        n.left  = x.right;
+
+        x.right = n;
+        n.parent = x;
+        x.parent = newParent;
+        newParent.right = x;
+
+    }
   
     public void leftRotate(Node n) {
 
@@ -246,9 +272,6 @@ public class RBT {
 
         n.parent = x;
    
-
-      
-     
     }
 
 
@@ -268,6 +291,7 @@ public class RBT {
         Node uncle = getSibling(n.parent);
         Node grand = returGrand(n);
         Node parent = returParent(n);
+        Node z = n;
      
 
         if(uncle != null && uncle.colour == "RED" && grand != null) {
@@ -299,6 +323,40 @@ public class RBT {
                 return;
 
             }
+
+            if(n.compareTo(n.parent) < 0 && n.parent.compareTo(n.parent.parent) > 0) {
+                sideHoyreRotate(parent);
+                System.out.println("HEi ----");
+                System.out.println(n);
+                System.out.println(n.right);
+                System.out.println("Pappa til " + n.right +  n.right.parent);
+                System.out.println("INNELUKKET");
+                z = n.right;
+                z.parent.setBlack();
+                grand.setRed();
+                leftRotate(grand);
+                return;
+            }
+            if(n.compareTo(n.parent) < 0 && n.parent.compareTo(n.parent.parent) > 0) {
+                sideHoyreRotate(parent);
+                System.out.println("HEi ----");
+                System.out.println(n);
+                System.out.println(n.right);
+                System.out.println("Pappa til " + n.right +  n.right.parent);
+                System.out.println("INNELUKKET");
+                z = n.right;
+                z.parent.setBlack();
+                grand.setRed();
+                leftRotate(grand);
+                return;
+            }
+            sideVenstreRotate(parent);
+
+            z = n.left;
+            z.parent.setBlack();
+            grand.setRed();
+            rightRotate(grand);
+            return;
         }
     
 
